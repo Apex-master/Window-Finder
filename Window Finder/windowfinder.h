@@ -1,3 +1,6 @@
+// Window Finder
+// https://github.com/Apex-master
+
 #include <iostream>
 #include <Windows.h>
 #include <vector>
@@ -19,6 +22,8 @@ std::string tstring_to_string(const TCHAR* tstr)
     return std::string(tstr);
 #endif
 }
+
+bool hide_child = false;
 
 std::map<DWORD, std::string> windowStyles =
 {
@@ -87,11 +92,14 @@ struct AppWindow
     std::string window_name;
     std::string window_class;
     std::string process_name;
+
     HWND hwnd;
+
     int process_id;
     int thread_id;
-    RECT rect;
 
+    RECT rect;
+    
     std::vector<std::string> window_styles;
     std::vector<std::string> window_extendedstyles;
 };
@@ -118,7 +126,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 
             //Identify if it is a child window
             HWND parent = GetParent(hwnd);
-            if (parent != NULL)
+            if (parent != NULL && !hide_child)
             {
                 DWORD ownerID;
                 GetWindowThreadProcessId(parent, &ownerID);
@@ -128,7 +136,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
                 TCHAR* window_name = new TCHAR[lenO + 1];
                 GetWindowText(hwnd, window_name, lenO + 1);
 
-                app.window_name = "[Child] [Owner Proc ID:" + std::to_string(ownerID) + "] " + tstring_to_string(window_name);
+                app.window_name = "[Child Window] [Owner Proc ID:" + std::to_string(ownerID) + "] " + tstring_to_string(window_name);
             }
             else
             {
@@ -178,8 +186,10 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 
             windows.push_back(app);
 
-            EnumChildWindows(hwnd, EnumWindowsProc, NULL);
-
+            if (!hide_child)
+            {
+                EnumChildWindows(hwnd, EnumWindowsProc, NULL);
+            }
         }
         CloseHandle(process);
     }
@@ -199,6 +209,7 @@ void PrintWindows(const AppWindow& app, int i)
 {
     ImGui::TableNextRow();
 
+    // ID
     ImGui::TableSetColumnIndex(0);
     char buffer4[32];
     snprintf(buffer4, sizeof(buffer4), "%i", i);
@@ -216,7 +227,7 @@ void PrintWindows(const AppWindow& app, int i)
         ImGui::EndTooltip();
     }
 
-
+    // Window Name
     ImGui::TableSetColumnIndex(1);
     ImGui::Selectable(app.window_name.c_str());
     if (ImGui::IsItemClicked())
@@ -232,7 +243,7 @@ void PrintWindows(const AppWindow& app, int i)
         ImGui::EndTooltip();
     }
 
-
+    // Window Class
     ImGui::TableSetColumnIndex(2);
     ImGui::Selectable(app.window_class.c_str());
 
@@ -248,7 +259,7 @@ void PrintWindows(const AppWindow& app, int i)
         ImGui::EndTooltip();
     }
 
-
+    // Process Name
     ImGui::TableSetColumnIndex(3);
     ImGui::Selectable(app.process_name.c_str());
 
@@ -264,7 +275,7 @@ void PrintWindows(const AppWindow& app, int i)
         ImGui::EndTooltip();
     }
 
-
+    // Process ID
     ImGui::TableSetColumnIndex(4);
     char buffer3[32];
     snprintf(buffer3, sizeof(buffer3), "%i", app.process_id);
@@ -282,7 +293,7 @@ void PrintWindows(const AppWindow& app, int i)
         ImGui::EndTooltip();
     }
 
-
+    // Thread ID
     ImGui::TableSetColumnIndex(5);
     char buffer2[32];
     snprintf(buffer2, sizeof(buffer2), "%i", app.thread_id);
@@ -300,11 +311,10 @@ void PrintWindows(const AppWindow& app, int i)
         ImGui::EndTooltip();
     }
 
-
+    // HWND
     ImGui::TableSetColumnIndex(6);
-
     char buffer1[32];
-    snprintf(buffer1, sizeof(buffer1), "0x%X", (int)app.hwnd);
+    snprintf(buffer1, sizeof(buffer1), "0x%X", (unsigned int)app.hwnd);
     ImGui::Selectable(buffer1);
 
     if (ImGui::IsItemClicked())
@@ -319,7 +329,7 @@ void PrintWindows(const AppWindow& app, int i)
         ImGui::EndTooltip();
     }
 
-
+    // Window Size
     ImGui::TableSetColumnIndex(7);
     char buffer[100];
     snprintf(buffer, 100, "%d x %d", app.rect.right - app.rect.left, app.rect.bottom - app.rect.top);
@@ -338,7 +348,7 @@ void PrintWindows(const AppWindow& app, int i)
         ImGui::EndTooltip();
     }
 
-
+    // Window Styles
     ImGui::TableSetColumnIndex(8);
     for (const auto& style : app.window_styles)
     {
@@ -358,7 +368,7 @@ void PrintWindows(const AppWindow& app, int i)
 
     }
 
-
+    // Window Extended Styles
     ImGui::TableSetColumnIndex(9);
     for (const auto& style : app.window_extendedstyles)
     {
@@ -398,7 +408,7 @@ void WindowFinder(HWND hwnd)
     // Set the size and position of the ImGui window
     ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
     ImGui::SetNextWindowPos(ImVec2(windowWidth / 2, windowHeight / 2), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::Begin("Window Finder", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+    ImGui::Begin("Window Finder", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
 
     char searchTermChar[256];
     strcpy_s(searchTermChar, searchTerm.c_str());
@@ -429,6 +439,25 @@ void WindowFinder(HWND hwnd)
         EnumWindows(EnumWindowsProc, 0);
 
     }
+
+    ImGui::SameLine(ImGui::GetWindowWidth() - 84.0f);
+
+    if (ImGui::Button("Settings"))
+    {
+        ImGui::OpenPopup("Settings");
+
+    }
+    ImGui::SetNextWindowSize(ImVec2(200, 185));
+    if (ImGui::BeginPopup("Settings", ImGuiWindowFlags_NoResize))
+    {
+        CreateHeader("Settings");
+
+        ImGui::Checkbox("Hide Child Windows", &hide_child);
+
+        ImGui::EndPopup();
+    }
+
+    ImGui::Spacing();
 
     static ImGuiTableFlags flags =
         ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable
@@ -473,15 +502,15 @@ void WindowFinder(HWND hwnd)
 
                 std::string windowNameLower, windowClassLower, processNameLower, window_styles_lower, window_extendedstyles_lower, window_hwnd;
 
-                char buffer[32];
-                snprintf(buffer, sizeof(buffer), "0x%X", (int)app.hwnd);
-                std::string hwnd_string(buffer);
+                std::ostringstream stream;
+                stream << "0x" << std::hex << (int)app.hwnd;
+                std::string hwnd_string = stream.str();
 
                 std::transform(app.window_name.begin(), app.window_name.end(), std::back_inserter(windowNameLower), [](unsigned char c) { return std::tolower(c); });
                 std::transform(app.window_class.begin(), app.window_class.end(), std::back_inserter(windowClassLower), [](unsigned char c) { return std::tolower(c); });
                 std::transform(app.process_name.begin(), app.process_name.end(), std::back_inserter(processNameLower), [](unsigned char c) { return std::tolower(c); });
 
-                std::transform(hwnd_string.begin(), hwnd_string.end(), std::back_inserter(window_hwnd), [](unsigned char c) { return std::tolower(c); }); // HWND causes slow search 
+                std::transform(hwnd_string.begin(), hwnd_string.end(), std::back_inserter(window_hwnd), [](unsigned char c) { return std::tolower(c); });
 
                 for (int j = 0; j < app.window_styles.size(); j++)
                 {
@@ -498,7 +527,7 @@ void WindowFinder(HWND hwnd)
                     || processNameLower.find(searchTermLower) != std::string::npos
                     || std::to_string(app.process_id).find(searchTermLower) != std::string::npos
                     || std::to_string(app.thread_id).find(searchTermLower) != std::string::npos
-                    || window_hwnd.find(searchTermLower) != std::string::npos // uncomment above lines to enable. 
+                    || window_hwnd.find(searchTermLower) != std::string::npos
                     || window_styles_lower.find(searchTermLower) != std::string::npos
                     || window_extendedstyles_lower.find(searchTermLower) != std::string::npos)
                 {
@@ -523,7 +552,6 @@ void WindowFinder(HWND hwnd)
                 flags = 0;
             }
 
-
             ImGui::OpenPopup("Window Information");
 
             ImGui::SetNextWindowSize(ImVec2(600, 385));
@@ -535,8 +563,8 @@ void WindowFinder(HWND hwnd)
 
                     ImGui::Text("Window ID: %i", selected_row);
 
-                    std::string windowN = windows[selected_row].window_name.c_str();
-                    if (windowN == "")
+                    std::string windowName = windows[selected_row].window_name.c_str();
+                    if (windowName == "")
                     {
                         ImGui::Text("Window Name: N/A");
                     }
@@ -559,9 +587,10 @@ void WindowFinder(HWND hwnd)
                     ImGui::Text("Process ID: %i", windows[selected_row].process_id);
                     ImGui::Text("Thread ID: %i", windows[selected_row].thread_id);
 
-                    char hwnd_string[32];
-                    snprintf(hwnd_string, 32, "0x%x", (int)windows[selected_row].hwnd);
-                    ImGui::Text("HWND: %s", hwnd_string);
+                    std::ostringstream stream;
+                    stream << "0x" << std::hex << (int)windows[selected_row].hwnd;
+                    std::string hwnd_string = stream.str();
+                    ImGui::Text("HWND: %s", hwnd_string.c_str());
 
                     ImGui::Text("Size: %d x %d", windows[selected_row].rect.right - windows[selected_row].rect.left, windows[selected_row].rect.bottom - windows[selected_row].rect.top);
                 }
@@ -622,9 +651,9 @@ void WindowFinder(HWND hwnd)
                     oss << "Window Class: " << windows[selected_row].window_class << '\n';
                     oss << "Process Name: " << windows[selected_row].process_name << '\n';
                     oss << "Window HWND: 0x" << std::hex << (int)windows[selected_row].hwnd << '\n';
-                    oss << "Process ID: " << windows[selected_row].process_id << '\n';
-                    oss << "Thread ID: " << windows[selected_row].thread_id << '\n';
-                    oss << "Window Size: " << windows[selected_row].rect.right - windows[selected_row].rect.left << " x " << windows[selected_row].rect.bottom - windows[selected_row].rect.top << "\n";
+                    oss << "Process ID: " << std::dec << (int)windows[selected_row].process_id << '\n';
+                    oss << "Thread ID: " << std::dec << windows[selected_row].thread_id << '\n';
+                    oss << "Window Size: " << std::dec << windows[selected_row].rect.right - windows[selected_row].rect.left << " x " << windows[selected_row].rect.bottom - windows[selected_row].rect.top << "\n";
 
                     oss << "Window Styles: ";
                     for (const auto& style : windows[selected_row].window_styles)
@@ -686,11 +715,11 @@ void WindowFinder(HWND hwnd)
                         oss << "Window Name: " << windows[selected_row].window_name << '\n';
                     }
 
-                    oss << "Window Class: " << windows[selected_row].window_class << '\n';
+                    oss << "Window Class: "  << windows[selected_row].window_class << '\n';
                     oss << "Process Name: " << windows[selected_row].process_name << '\n';
-                    oss << "Window HWND: " << std::hex << (int)windows[selected_row].hwnd << '\n';
-                    oss << "Process ID: " << windows[selected_row].process_id << '\n';
-                    oss << "Thread ID: " << windows[selected_row].thread_id << '\n';
+                    oss << "Window HWND: 0x" << std::hex << (int)windows[selected_row].hwnd << '\n';
+                    oss << "Process ID: " << std::dec << (int)windows[selected_row].process_id << '\n';
+                    oss << "Thread ID: " << std::dec << windows[selected_row].thread_id << '\n';
                     oss << "Window Size: " << windows[selected_row].rect.right - windows[selected_row].rect.left << " x " << windows[selected_row].rect.bottom - windows[selected_row].rect.top << "\n";
 
                     oss << "Window Styles: ";
@@ -708,21 +737,21 @@ void WindowFinder(HWND hwnd)
 
                     std::string file_content = oss.str();
 
-                    char fileName[MAX_PATH];
+                    wchar_t fileName[MAX_PATH];
                     OPENFILENAME ofn;
-                    ZeroMemory(&fileName, sizeof(fileName));
+                    ZeroMemory(fileName, sizeof(fileName));
                     ZeroMemory(&ofn, sizeof(ofn));
                     ofn.lStructSize = sizeof(ofn);
-                    ofn.lpstrFilter = "Text Files (*.txt)\0*.txt\0Any File (*.*)\0*.*\0";
+                    ofn.lpstrFilter = L"Text Files (*.txt)\0*.txt\0Any File (*.*)\0*.*\0";
                     ofn.lpstrFile = fileName;
                     ofn.nMaxFile = MAX_PATH;
-                    ofn.lpstrTitle = "Save All Info";
+                    ofn.lpstrTitle = L"Save All Info";
                     ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-                    ofn.lpstrDefExt = "txt";
-                    if (GetSaveFileNameA(&ofn))
+                    ofn.lpstrDefExt = L"txt";
+                    if (GetSaveFileNameW(&ofn))
                     {
-                        std::ofstream outFile(fileName);
-                        outFile << file_content;
+                        std::wofstream outFile(fileName);
+                        outFile << file_content.c_str();
                         outFile.close();
                     }
                 }

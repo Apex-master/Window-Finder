@@ -10,7 +10,7 @@ Window Finder is the ultimate tool for finding windows with specific properties.
 * Export window details with ease - choose between copying the information or saving it to a file.
 
 <b>Demo:</b>
-![demo](https://github.com/Apex-master/Window-Finder/blob/main/windowfinderdemo.mp4)
+![demo](https://github.com/Apex-master/Window-Finder/blob/main/windowfinderdemo.gif)
 
 
 ## How it works

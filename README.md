@@ -10,7 +10,7 @@ Window Finder is the ultimate tool for finding windows with specific properties.
 * Export window details with ease - choose between copying the information or saving it to a file.
 
 <b>Demo:</b>
-![](https://github.com/Apex-master/Arma-3-QEMU-External-Radar/blob/main/exmp1.gif)
+![](https://github.com/Apex-master/Window-Finder/blob/main/windowfinderdemo.mp4)
 
 ## How it works
 <b>Window Finder</b><br/>

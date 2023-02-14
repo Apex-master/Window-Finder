@@ -12,7 +12,6 @@
 #include <sstream>
 #include <fstream>
 
-
 std::string tstring_to_string(const TCHAR* tstr)
 {
 #ifdef UNICODE
@@ -651,7 +650,7 @@ void WindowFinder(HWND hwnd)
                     oss << "Window Class: " << windows[selected_row].window_class << '\n';
                     oss << "Process Name: " << windows[selected_row].process_name << '\n';
                     oss << "Window HWND: 0x" << std::hex << (int)windows[selected_row].hwnd << '\n';
-                    oss << "Process ID: " << std::dec << (int)windows[selected_row].process_id << '\n';
+                    oss << "Process ID: " << std::dec << windows[selected_row].process_id << '\n';
                     oss << "Thread ID: " << std::dec << windows[selected_row].thread_id << '\n';
                     oss << "Window Size: " << std::dec << windows[selected_row].rect.right - windows[selected_row].rect.left << " x " << windows[selected_row].rect.bottom - windows[selected_row].rect.top << "\n";
 
@@ -718,7 +717,7 @@ void WindowFinder(HWND hwnd)
                     oss << "Window Class: "  << windows[selected_row].window_class << '\n';
                     oss << "Process Name: " << windows[selected_row].process_name << '\n';
                     oss << "Window HWND: 0x" << std::hex << (int)windows[selected_row].hwnd << '\n';
-                    oss << "Process ID: " << std::dec << (int)windows[selected_row].process_id << '\n';
+                    oss << "Process ID: " << std::dec << windows[selected_row].process_id << '\n';
                     oss << "Thread ID: " << std::dec << windows[selected_row].thread_id << '\n';
                     oss << "Window Size: " << windows[selected_row].rect.right - windows[selected_row].rect.left << " x " << windows[selected_row].rect.bottom - windows[selected_row].rect.top << "\n";
 

@@ -15,7 +15,7 @@ Window Finder is a great tool for finding windows with specific properties. You 
 
 ## How it works
 <b>Window Finder</b><br/>
-The program uses Windows API functions to enumerate all top-level windows on the system. The process starts with the EnumWindows function, which takes as its argument the EnumWindowsProc callback function. This callback function, in turn, retrieves information about each window that it enumerates, such as its window name, class, and process name, as well as its handle (hwnd), process ID, thread ID and other information such as its size, style flags and extended style flags. This information is stored in a custom AppWindow structure.
+This program uses Windows API functions to enumerate all top-level windows on the system. The process starts with the EnumWindows function, which takes as its argument the EnumWindowsProc callback function. This callback function, in turn, retrieves information about each window that it enumerates, such as its window name, class, and process name, as well as its handle (hwnd), process ID, thread ID and other information such as its size, style flags and extended style flags. This information is stored in a custom AppWindow structure.
 
 The EnumChildWindows function is called on each window to enumerate any child windows it might have. The information about each child window is similarly stored in the AppWindow structure and added to the windows vector.
 

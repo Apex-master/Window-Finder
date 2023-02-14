@@ -1,7 +1,7 @@
 # Window-Finder
 Window Finder is a great tool for finding windows with specific properties. You can quickly search for windows with specific sizes, class names, window styles, extended styles and you can export window details instantly.
 
-* Window Finder (/windowfinder.h)
+* Window Finder (Window Finder/windowfinder.h)
 
 ## Main Features
 
@@ -23,4 +23,7 @@ The program also has the ability to export the information about the windows, ei
 
 ## To do
 * Add treeview like tables for child windows.
+
+## Credits:
+* [imgui](https://github.com/ocornut/imgui)
 

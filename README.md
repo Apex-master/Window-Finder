@@ -22,4 +22,5 @@ The EnumChildWindows function is called on each window to enumerate any child wi
 The program also has the ability to export the information about the windows, either by copying it or saving it to a file. This information can then be used for further analysis or manipulation.
 
 ## To do
-* Optimize the search function.
+* Add treeview like tables for child windows.
+
